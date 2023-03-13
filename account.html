@@ -1,0 +1,198 @@
+<!--
+ * @Author: error: git config user.name && git config user.email & please set dead value or install git
+ * @Date: 2023-03-12 14:57:58
+ * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @LastEditTime: 2023-03-13 21:03:30
+ * @FilePath: \lin-projectg:\code\task-pro\index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="./style/index.css">
+</head>
+<body>
+  <div id="app">
+    <el-page-header title="前往任务管理" @back="goBack" content="账号管理" style="margin: 0 0 20px 0;">
+    </el-page-header>
+
+    <div class="page-main">
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" ref="searchForm">
+                <el-form-item label="账号名字">
+                    <el-input v-model="searchForm.name" placeholder="请输入账号名字"></el-input>
+                </el-form-item>
+                <el-form-item label="账号id">
+                    <el-input v-model="searchForm.id" placeholder="请输入账号id"></el-input>
+                </el-form-item>
+                <el-form-item label="账号token">
+                    <el-input v-model="searchForm.token" placeholder="请输入账号token"></el-input>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="onSubmit">查询</el-button>
+                </el-form-item>
+            </el-form>
+            <el-button type="primary" @click="handleCreate">创建账号</el-button>
+        </div>
+        <div class="table-box">
+            <el-table
+                :data="tableData"
+                border
+                stripe
+            >
+                <el-table-column
+                    prop="name"
+                    label="名字">
+                </el-table-column>
+                <el-table-column
+                    prop="id"
+                    label="id">
+                </el-table-column>
+                <el-table-column
+                    prop="token"
+                    label="token">
+                </el-table-column>
+                <el-table-column
+                    label="操作"
+                    width="300"
+                >
+                    <template #default="scope">
+                        <div>
+                            <el-button type="primary" @click="handleEdit(scope.row)" style="margin-right: 10px;">修改<i class="el-icon-edit el-icon--right"></i></el-button>
+                            <el-popconfirm
+                                title="确定删除该账号吗？"
+                                @confirm="handleDelete(scope.row)"
+                            >
+                                <el-button
+                                    slot="reference"
+                                    type="danger"
+                                >
+                                    删除<i class="el-icon-delete el-icon--right"></i>
+                                </el-button>
+                            </el-popconfirm>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+    </div>
+
+    <el-dialog
+        :title="mode === 'create' ? '创建账号' : '修改账号'"
+        :visible.sync="dialogVisible"
+        :close-on-click-modal="false"
+        width="566px"
+    >
+        <el-form ref="detailForm" :rules="rules" :model="detailForm" label-width="90px">
+            <el-form-item label="账号名字" prop="name">
+                <el-input v-model="detailForm.name" :disabled="mode === 'detail'"></el-input>
+            </el-form-item>
+            <el-form-item label="账号id" prop="id">
+                <el-input v-model="detailForm.id" :disabled="mode === 'detail'"></el-input>
+            </el-form-item>
+            <el-form-item label="账号token" prop="token">
+                <el-input v-model="detailForm.token"></el-input>
+            </el-form-item>
+            <el-form-item label="" style="text-align: right;">
+                <el-button @click="dialogVisible = false;">取消</el-button>
+                <el-button type="primary" @click="onSubmit">
+                    {{ mode === 'create' ? '立即创建' : '立即修改' }}
+                </el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+  </div>
+</body>
+  <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+            searchForm: {
+                name: '',
+                id: '',
+                token: ''
+            },
+            tableData: [
+                {
+                    id: '2016-05-02',
+                    name: '王小虎',
+                    token: '上海市普陀区金沙江路 1518 弄'
+                },
+                {
+                    id: '2016-05-04',
+                    name: '王小虎',
+                    token: '上海市普陀区金沙江路 1517 弄'
+                }
+            ],
+            mode: 'create',
+            dialogVisible: false,
+            detailForm: {
+                name: '',
+                id: '',
+                token: ''
+            },
+            rules: {
+                name: [
+                    { required: true, message: '请输入账号名字', trigger: 'blur' }
+                ],
+                id: [
+                    { required: true, message: '请输入账号id', trigger: 'blur' }
+                ],
+                token: [
+                    { required: true, message: '请输入账号token', trigger: 'blur' }
+                ]
+            }
+        }
+      },
+      methods: {
+        // 前往任务页面
+        goBack() {
+            console.log(window.location);
+            window.location.href = './task.html';
+        },
+        // 创建账号
+        handleCreate() {
+            this.mode = 'create';
+            this.detailForm = {
+                name: '',
+                id: '',
+                token: ''
+            };
+            this.dialogVisible = true;
+        },
+        // 搜索账号
+        onSubmit() {
+            console.log(this.searchForm);
+        },
+        // 处理编辑
+        handleEdit(obj) {
+            this.mode = 'detail';
+            this.dialogVisible = true;
+            this.detailForm = { ...obj };
+        },
+        // 处理删除
+        handleDelete(obj) {
+            console.log(obj);
+        },
+        // 新增/编辑账号
+        onSubmit() {
+            this.$refs['detailForm'].validate((valid) => {
+                if (valid) {
+                    alert('submit!');
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        }
+      },
+    })
+  </script>
+</html>

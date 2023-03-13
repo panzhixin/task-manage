@@ -1,0 +1,225 @@
+<!--
+ * @Author: error: git config user.name && git config user.email & please set dead value or install git
+ * @Date: 2023-03-12 14:57:58
+ * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @LastEditTime: 2023-03-13 21:08:36
+ * @FilePath: \lin-projectg:\code\task-pro\index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="./style/index.css">
+</head>
+<body>
+  <div id="app">
+    <el-page-header title="前往账号管理" @back="goBack" content="任务管理" style="margin: 0 0 20px 0;">
+    </el-page-header>
+
+    <div class="page-main">
+        <div class="search-box">
+            <el-form :inline="true" :model="searchForm" ref="searchForm">
+                <el-form-item label="任务名称">
+                    <el-input v-model="searchForm.name" placeholder="请输入任务名称"></el-input>
+                </el-form-item>
+                <el-form-item label="任务时间">
+                    <el-date-picker
+                        v-model="searchForm.date"
+                        type="datetimerange"
+                        :picker-options="pickerOptions"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        align="right">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="onSubmit">查询</el-button>
+                </el-form-item>
+            </el-form>
+            <el-button type="primary" @click="handleCreate">创建任务</el-button>
+        </div>
+        <div class="table-box">
+            <el-table
+                :data="tableData"
+                border
+                stripe
+            >
+                <el-table-column
+                    prop="name"
+                    label="名字">
+                </el-table-column>
+                <el-table-column
+                    prop="time"
+                    label="任务开始时间">
+                </el-table-column>
+                <el-table-column
+                    label="操作"
+                    width="300"
+                >
+                    <template #default="scope">
+                        <div>
+                            <el-button
+                                type="primary"
+                                @click="handleWatch(scope.row)">
+                                查看<i class="el-icon-zoom-in el-icon--right"></i>
+                            </el-button>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+    </div>
+
+    <el-dialog
+        title="创建账号"
+        :visible.sync="dialogVisible"
+        :close-on-click-modal="false"
+        width="566px"
+    >
+        <el-form ref="detailForm" :rules="rules" :model="detailForm" label-width="120px">
+            <el-form-item label="任务名称" prop="name">
+                <el-input v-model="detailForm.name"></el-input>
+            </el-form-item>
+            <el-form-item label="任务开始时间" prop="time">
+                <el-date-picker
+                    v-model="detailForm.time"
+                    type="datetime"
+                    placeholder="选择日期时间"
+                    style="width: 100%;">
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item label="账号数量" prop="num">
+                <el-input-number
+                    v-model="detailForm.num"
+                    :precision="0"
+                    :min="1">
+                </el-input-number>
+            </el-form-item>
+            <el-form-item label="" style="text-align: right;">
+                <el-button @click="dialogVisible = false;">取消</el-button>
+                <el-button type="primary" @click="onSubmit">
+                    立即创建
+                </el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+  </div>
+</body>
+  <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+            pickerOptions: {
+                shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                    picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                    picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近三个月',
+                    onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                    picker.$emit('pick', [start, end]);
+                    }
+                }]
+            },
+            searchForm: {
+                name: '',
+                date: [],
+            },
+            tableData: [
+                {
+                    time: '2016-05-02',
+                    name: '王小虎',
+                    token: '上海市普陀区金沙江路 1518 弄'
+                },
+                {
+                    time: '2016-05-04',
+                    name: '王小虎',
+                    token: '上海市普陀区金沙江路 1517 弄'
+                }
+            ],
+            mode: 'create',
+            dialogVisible: false,
+            detailForm: {
+                name: '',
+                time: '',
+                num: ''
+            },
+            rules: {
+                name: [
+                    { required: true, message: '请输入任务名称', trigger: 'blur' }
+                ],
+                time: [
+                    { required: true, message: '请输入任务开始时间', trigger: 'blur' }
+                ],
+                num: [
+                    { required: true, message: '请输入账号数量', trigger: 'blur' }
+                ]
+            },
+        }
+      },
+      methods: {
+        // 前往任务页面
+        goBack() {
+            window.location.href = './account.html';
+        },
+        // 创建账号
+        handleCreate() {
+            this.detailForm = {
+                name: '',
+                time: '',
+                num: ''
+            };
+            this.dialogVisible = true;
+        },
+        // 搜索账号
+        onSubmit() {
+            console.log(this.searchForm);
+        },
+        // 处理编辑
+        handleWatch(obj) {
+            this.mode = 'detail';
+            this.dialogVisible = true;
+            this.detailForm = { ...obj };
+        },
+        // 处理删除
+        handleDelete(obj) {
+            console.log(obj);
+        },
+        // 新增/编辑账号
+        onSubmit() {
+            this.$refs['detailForm'].validate((valid) => {
+                if (valid) {
+                    alert('submit!');
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        }
+      },
+    })
+  </script>
+</html>
